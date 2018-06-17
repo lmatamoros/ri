@@ -1,0 +1,1 @@
+# Gestiona el repositorio de información para zaindari
