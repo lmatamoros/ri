@@ -17,12 +17,12 @@
 const client = require("./Client"),
     sql = require("mssql")
 
-var SqlSPConsumer = (config) => {
+var SqlSPConsumer = function (config) {
     this._config = config
     this.client = null
 }
 
-SqlSPConsumer.prototype.execute = (spName, spArgs) => {
+SqlSPConsumer.prototype.execute = function (spName, spArgs) {
     let self = this
     return new Promise((resolve, reject) => {
         if (self.client === null) {
@@ -44,7 +44,7 @@ SqlSPConsumer.prototype.execute = (spName, spArgs) => {
     })
 }
 
-SqlSPConsumer.prototype.request = (spName, spArgs) => {
+SqlSPConsumer.prototype.request = function (spName, spArgs) {
     let self = this
     return new Promise((resolve, reject) => {
         try {
@@ -76,14 +76,14 @@ SqlSPConsumer.prototype.request = (spName, spArgs) => {
     })
 }
 
-SqlSPConsumer.prototype.setParams = (spRequest, spArgs) => {
+SqlSPConsumer.prototype.setParams = function (spRequest, spArgs) {
     let self = this
     for (let param in spArgs) {
         spRequest.input(param, self.paramType(spArgs[param]), spArgs[param].value)
     }
 }
 
-SqlSPConsumer.prototype.paramType = (param) => {
+SqlSPConsumer.prototype.paramType = function (param) {
     if (param.type === "VARCHAR") {
         return sql.VarChar(("length" in param ? param.length : sql.MAX))
     } else if (param.type === "NVARCHAR") {
@@ -121,7 +121,7 @@ SqlSPConsumer.prototype.paramType = (param) => {
     }
 }
 
-SqlSPConsumer.prototype.resultSet = (recordsets) => {
+SqlSPConsumer.prototype.resultSet = function (recordsets) {
     return (recordsets && "recordsets" in recordsets) 
         ? (recordsets["recordsets"].length > 0 ? recordsets["recordsets"][0] : [])
         : []

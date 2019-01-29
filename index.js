@@ -16,7 +16,7 @@
 
 const SPConsumer = require("./instances/sqlServer/SPConsumer")
 
-var DBConsumer = (type, config) => {
+var DBConsumer = function (type, config) {
     let spConsumer
     if (type === "SQLSERVER") {
         spConsumer = new SPConsumer(config)
@@ -30,7 +30,7 @@ var DBConsumer = (type, config) => {
     this._spConsumer = spConsumer
 }
 
-DBConsumer.prototype.callSP = (spName, spArgs) => {
+DBConsumer.prototype.callSP = function (spName, spArgs) {
     let self = this
     return new Promise((resolve, reject) => {
         self._spConsumer.execute(spName, spArgs).then(result => {

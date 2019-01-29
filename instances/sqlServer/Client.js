@@ -15,9 +15,9 @@
 
 const sql = require("mssql")
 
-var SqlServerClient = () => {}
+var SqlServerClient = function () {}
 
-SqlServerClient.prototype.connect = (config) => {
+SqlServerClient.prototype.connect = function (config) {
     return new Promise((resolve, reject) => {
         new sql.ConnectionPool(config).connect().then(pool => {
             resolve(pool)
@@ -29,7 +29,7 @@ SqlServerClient.prototype.connect = (config) => {
 
 SqlServerClient.instance = null
 
-SqlServerClient.getInstance = () => {
+SqlServerClient.getInstance = function () {
     if (this.instance === null) {
         this.instance = new SqlServerClient()
     }
