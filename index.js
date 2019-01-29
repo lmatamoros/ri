@@ -10,13 +10,13 @@
     Date:    17-06-2018
     Author:  Luis Matamoros
     Changes:
-       First version 
+        First version 
 /----------------------------------------------------------------- */
 "use strict"
 
 const SPConsumer = require("./instances/sqlServer/SPConsumer")
 
-var DBConsumer = function (type, config) {
+var DBConsumer = (type, config) => {
     let spConsumer
     if (type === "SQLSERVER") {
         spConsumer = new SPConsumer(config)
@@ -30,9 +30,15 @@ var DBConsumer = function (type, config) {
     this._spConsumer = spConsumer
 }
 
-DBConsumer.prototype.callSP = function (spName, spArgs, callback, resArgs) {
+DBConsumer.prototype.callSP = (spName, spArgs) => {
     let self = this
-    self._spConsumer.execute(spName, spArgs, callback, resArgs)
+    return new Promise((resolve, reject) => {
+        self._spConsumer.execute(spName, spArgs).then(result => {
+            resolve(result)
+        }).catch(err => {
+            reject(err)
+        })
+    })
 }
 
 module.exports = DBConsumer

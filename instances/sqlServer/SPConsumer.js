@@ -10,71 +10,80 @@
     Date:    17-06-2018
     Author:  Luis Matamoros
     Changes:
-       First version 
+        First version 
 /----------------------------------------------------------------- */
 "use strict"
 
 const client = require("./Client"),
     sql = require("mssql")
 
-var SqlSPConsumer = function (config) {
+var SqlSPConsumer = (config) => {
     this._config = config
     this.client = null
 }
 
-SqlSPConsumer.prototype.execute = function (spName, spArgs, callback, resArgs) {
+SqlSPConsumer.prototype.execute = (spName, spArgs) => {
     let self = this
-    if (self.client === null) {
-        client.connect(self._config).then(pool => {
-            self.client = pool
-            self.request(spName, spArgs, callback, resArgs)
-        }).catch(err => {
-            callback(err, null, resArgs)
-        })
-    } else {
-        self.request(spName, spArgs, callback, resArgs)
-    }
-}
-
-SqlSPConsumer.prototype.request = function (spName, spArgs, callback, resArgs) {
-    let self = this
-    try {
-        let spRequest = self.client.request()
-        self.setParams(spRequest, spArgs)
-        spRequest.execute(spName, function(err, recordsets, returnValue) {
-            if(err) {
-                let error = {
-                    error: err,
-                    code: 500
-                }
-                callback(error, null, resArgs)
-            } else {
-                let result = {
-                    recordsets: self.resultSet(recordsets),
-                    returnValue: returnValue,
-                    code: 200
-                }
-                callback(null, result, resArgs)
-            }
-        })
-    } catch (exc) {
-        let err = {
-            error: exc.toString(),
-            code: 501
+    return new Promise((resolve, reject) => {
+        if (self.client === null) {
+            client.connect(self._config).then(pool => {
+                self.client = pool
+                return self.request(spName, spArgs)
+            }).then(result => {
+                resolve(result)
+            }).catch(err => {
+                reject(err)
+            })
+        } else {
+            self.request(spName, spArgs).then(result => {
+                resolve(result)
+            }).catch(err => {
+                reject(err)
+            })
         }
-        callback(err, null, resArgs)
-    }
+    })
 }
 
-SqlSPConsumer.prototype.setParams = function (spRequest, spArgs) {
+SqlSPConsumer.prototype.request = (spName, spArgs) => {
     let self = this
-    for(let param in spArgs) {
+    return new Promise((resolve, reject) => {
+        try {
+            let spRequest = self.client.request()
+            self.setParams(spRequest, spArgs)
+            spRequest.execute(spName, (err, recordsets, returnValue) => {
+                if (err) {
+                    let error = {
+                        error: err,
+                        code: 500
+                    }
+                    reject(error)
+                } else {
+                    let result = {
+                        recordsets: self.resultSet(recordsets),
+                        returnValue: returnValue,
+                        code: 200
+                    }
+                    resolve(result)
+                }
+            })
+        } catch (exc) {
+            let err = {
+                error: exc.toString(),
+                code: 501
+            }
+            reject(err)
+        }
+    })
+}
+
+SqlSPConsumer.prototype.setParams = (spRequest, spArgs) => {
+    let self = this
+    for (let param in spArgs) {
         spRequest.input(param, self.paramType(spArgs[param]), spArgs[param].value)
     }
 }
 
-SqlSPConsumer.prototype.paramType = function (param) {
-    let self = this
+SqlSPConsumer.prototype.paramType = (param) => {
     if (param.type === "VARCHAR") {
         return sql.VarChar(("length" in param ? param.length : sql.MAX))
     } else if (param.type === "NVARCHAR") {
@@ -112,10 +121,10 @@ SqlSPConsumer.prototype.paramType = function (param) {
     }
 }
 
-SqlSPConsumer.prototype.resultSet = function (recordsets) {
+SqlSPConsumer.prototype.resultSet = (recordsets) => {
     return (recordsets && "recordsets" in recordsets) 
-		? (recordsets["recordsets"].length > 0 ? recordsets["recordsets"][0] : [])
-		: []
+        ? (recordsets["recordsets"].length > 0 ? recordsets["recordsets"][0] : [])
+        : []
 }
 
 module.exports = SqlSPConsumer

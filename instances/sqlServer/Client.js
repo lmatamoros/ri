@@ -9,16 +9,16 @@
     Date:    17-06-2018
     Author:  Luis Matamoros
     Changes:
-       First version 
+        First version 
 /----------------------------------------------------------------- */
 "use strict"
 
 const sql = require("mssql")
 
-var SqlServerClient = function () {}
+var SqlServerClient = () => {}
 
-SqlServerClient.prototype.connect = function (config) {
-    return new Promise(function(resolve, reject) {
+SqlServerClient.prototype.connect = (config) => {
+    return new Promise((resolve, reject) => {
         new sql.ConnectionPool(config).connect().then(pool => {
             resolve(pool)
         }).catch(err => {
@@ -29,7 +29,7 @@ SqlServerClient.prototype.connect = function (config) {
 
 SqlServerClient.instance = null
 
-SqlServerClient.getInstance = function () {
+SqlServerClient.getInstance = () => {
     if (this.instance === null) {
         this.instance = new SqlServerClient()
     }
